@@ -69,6 +69,7 @@ public:
     void Reset();
 
     virtual void SetImage(const QImage& nSrc);
+    virtual void SetOverlayImage(const QImage& nSrc);
     void SetImageIndex(int nImageIndex)
     {
         fImageIndex = nImageIndex;
@@ -122,6 +123,7 @@ protected:
     // data
     EViewState fViewState;
     QImage* fImgQImage;
+    QImage* fOverlayImgQImage;
     double fScaleFactor;
     int fImageIndex;
     int sliceIndexToolStart{-1};
@@ -135,6 +137,7 @@ protected:
     bool fSkipImageFormatConv;
 
     QGraphicsPixmapItem* fBaseImageItem;
+    QGraphicsPixmapItem* fOverlayImageItem;
 };  // class CVolumeViewer
 
 }  // namespace ChaoVis

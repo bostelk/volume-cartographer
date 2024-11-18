@@ -131,6 +131,8 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     , fViewState(EViewState::ViewStateIdle)
     , fImgQImage(nullptr)
     , fBaseImageItem(nullptr)
+    , fOverlayImgQImage(nullptr)
+    , fOverlayImageItem(nullptr)
     , fScaleFactor(1.0)
     , fImageIndex(0)
     , fScanRange(1)
@@ -157,6 +159,7 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     connect(fImageRotationSpin, SIGNAL(editingFinished()), this, SLOT(OnImageRotationSpinChanged()));
 
     fBaseImageItem = nullptr;
+    fOverlayImageItem = nullptr;
 
     // Create graphics view
     fGraphicsView = new CVolumeViewerView(this);
@@ -248,6 +251,28 @@ void CVolumeViewer::SetImage(const QImage& nSrc)
 
     UpdateButtons();
     update();
+}
+
+void CVolumeViewer::SetOverlayImage(const QImage& nSrc)
+{
+    if (fOverlayImgQImage == nullptr) {
+        fOverlayImgQImage = new QImage(nSrc);
+    } else {
+        *fOverlayImgQImage = nSrc;
+    }
+
+    QPixmap pixmap = QPixmap::fromImage(
+        *fOverlayImgQImage,
+        fSkipImageFormatConv ? Qt::NoFormatConversion : Qt::AutoColor);
+
+    // Add the overlay image on top of the base image
+    if (!fOverlayImageItem) {
+        fOverlayImageItem = fScene->addPixmap(pixmap);
+    } else {
+        fOverlayImageItem->setPixmap(pixmap);
+    }
+
+    fOverlayImageItem->setOpacity(0.8);
 }
 
 void CVolumeViewer::SetNumSlices(int num)
@@ -457,6 +482,11 @@ void CVolumeViewer::Reset()
     if (fBaseImageItem) {
         delete fBaseImageItem;
         fBaseImageItem = nullptr;
+    }
+
+    if (fOverlayImageItem) {
+        delete fOverlayImageItem;
+        fOverlayImageItem = nullptr;
     }
 
     OnResetClicked(); // to reset zoom

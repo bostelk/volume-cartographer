@@ -1656,6 +1656,27 @@ void CWindow::OpenSlice(void)
 
     fVolumeViewerWidget->SetImage(aImgQImage);
     fVolumeViewerWidget->SetImageIndex(fPathOnSliceIndex);
+
+    if (currentVolume != nullptr)
+    {
+        std::string filePath =
+            "/mnt/d/Vesuvius/data/full_scrolls/Scroll1/PHercParis4.volpkg/"
+            "overlays/summed_z_" +
+            std::to_string(fPathOnSliceIndex) + "_" + std::to_string(fPathOnSliceIndex + 100) + ".png";
+        if (!QFile::exists(QString::fromStdString(filePath))) {
+            std::cout << "File does not exist!" << std::endl;
+        }
+        QImageReader reader(QString::fromStdString(filePath));
+        if (!reader.canRead()) {
+            std::cout << "Unsupported image format or corrupted file." << std::endl;
+        }
+        QImage overlayImage = reader.read();
+        if (!overlayImage.isNull()) {
+            fVolumeViewerWidget->SetOverlayImage(overlayImage);
+        } else {
+            std::cout << "Failed to load image!! Error: " << reader.errorString().toStdString() << std::endl;
+        }
+    }
 }
 
 // Initialize path list
