@@ -111,3 +111,27 @@ find_package(SDL2 REQUIRED)
 
 # Look for the GNU Scientific Library (GSL) package for interpolation related functionalities
 find_package(GSL REQUIRED)
+
+pkg_check_modules(JSON_C REQUIRED json-c)
+
+# Include the headers
+include_directories(${JSON_C_INCLUDE_DIRS})
+
+# Link the library
+target_link_libraries(VC ${JSON_C_LIBRARIES})
+
+pkg_check_modules(CURL REQUIRED libcurl)
+
+# Include the headers
+include_directories(${CURL_INCLUDE_DIRS})
+
+# Link the library
+target_link_libraries(VC ${CURL_LIBRARIES})
+
+pkg_check_modules(BLOSC2 REQUIRED blosc2)
+
+# Include the headers
+include_directories(${BLOSC2_INCLUDE_DIRS})
+
+# Link the library
+target_link_libraries(VC ${BLOSC2_LIBRARIES})

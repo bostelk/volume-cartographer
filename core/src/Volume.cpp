@@ -7,6 +7,9 @@
 
 #include "vc/core/io/TIFFIO.hpp"
 
+#define VESUVIUS_IMPL
+#include "vc/core/io/vesuvius-c.h"
+
 namespace fs = volcart::filesystem;
 namespace tio = volcart::tiffio;
 
@@ -27,6 +30,13 @@ Volume::Volume(fs::path path) : DiskBasedObjectBaseClass(std::move(path))
     std::vector<std::mutex> init_mutexes(slices_);
 
     slice_mutexes_.swap(init_mutexes);
+
+    const char* scroll_id = "1";
+    const int energy = 54;
+    const double resolution = 7.91;
+
+    init_vesuvius(scroll_id, energy, resolution);
+
 }
 
 // Setup a Volume from a folder of slices
@@ -231,7 +241,28 @@ auto Volume::load_slice_(int index) const -> cv::Mat
     auto slicePath = getSlicePath(index);
     cv::Mat mat;
     try {
-        mat = tio::ReadTIFF(slicePath.string());
+        // mat = tio::ReadTIFF(slicePath.string());
+
+        RegionOfInterest roi = {
+            .x_start = 3256,
+            .x_width = 1536,
+            .y_start = 1720,
+            .y_height = 1536,
+            .z_start = index,
+            .z_depth = 1,
+        };
+
+        unsigned char* slice = (unsigned char*)malloc(roi.x_width * roi.y_height);
+        if (get_volume_slice(roi, slice) == 0) {
+            cv::Mat matSlice(roi.y_height, roi.x_width, CV_8UC1);
+            std::memcpy(matSlice.data, slice, roi.x_width * roi.y_height);
+            
+            mat = cv::Mat::zeros(sliceHeight(), sliceWidth(), CV_8UC1);
+            cv::Rect dstRect(cv::Point(roi.x_start, roi.y_start), cv::Size(roi.x_width, roi.y_height));
+
+            matSlice.copyTo(mat(dstRect));
+        }
+        free(slice);
     } catch (std::runtime_error) {
     }
     return mat;
